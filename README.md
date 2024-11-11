@@ -1,5 +1,18 @@
 # Hirad
 
+- Everything in the syntax of Hirad is an expression.
+- Each expression is made of a actor, scalar, vector, or matrix.
+- Actors are atom objects with a record, a type and a protocol
+- Expressions represent a list of signal arguments sent to an object.
+- There are two forms to expressions:
+    - parameter expressions have a target and parameter signature, ie `(<object> <operator> <Optional: Operand>)`.
+    - keyword expressions have a target and a keyword signature, ie `(<object> <keyword>: <value>)`.
+- Each object has a protocol that describes what messages it understands.
+- Accessors are unary messages.
+
+---
+
+
 ## Principles
 
 - "make the simple things very simple, and the complex things very possible" -- Alan Kay

@@ -1,12 +1,1 @@
-- Everything in the syntax of Hirad is an expression.
-- Each expression is made of a actor, scalar, vector, or matrix.
-- Actors are atom objects with a record, a type and a protocol
-- Expressions represent a list of signal arguments sent to an object.
-- There are two forms to expressions
-    - parameter expressions have a target and parameter signature, ie (Type new int) or (num + 3).
-    - keyword expressions have a target and a keyword signature, ie (target keywords)
-- Each object has a protocol that describes what messages it understands.
-- The symbol ; is the cascade operator, so where (obj a; d) -> ((obj . b) (obj . d))
-- The symbol : is the cons operator, so where (a: b c: d) -> ((a . b) (c . d))
-- Accessors are unary messages.
 
