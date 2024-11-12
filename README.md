@@ -33,7 +33,7 @@
 - 3d graphics, CAD, and animation functionality
 - math and science libs with heavy support for molecular dynamics and other simulation software
 - parser combinators, regex, and other advanced text manipulation
-- databases, entity component systems, iterators, and collections
+- databases, iterators, and collections
 - {i, u, f, vector}8/16/32/64/128/256/arbitrary(leb128)
 - fused multiply add
 
