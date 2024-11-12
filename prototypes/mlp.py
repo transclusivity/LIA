@@ -1,5 +1,5 @@
 """
-Mini List Processor.
+ini List Processor.
 """
 
 from dataclasses import dataclass as datacls
