@@ -1,25 +1,17 @@
+"""
+Mini List Processor.
+"""
+
 from dataclasses import dataclass as datacls
 from sys import argv as arguments
 import operator
 import math
 
-@datacls
-class Token:
-    src: str
-    line: int
-    position: int
-    context: str
-    value: str
-
-@datacls
-class Atom:
-    type: str
-    value: str | float
-
 
 class Mlp:
     def __init__(self):
-        self.env = standard_environment()
+        self.environment = standard_environment()
+        self.src = list()
 
     def main(self, arguments):
         match arguments:
@@ -28,101 +20,113 @@ class Mlp:
             case _: print("Usage: python mlp <Optional: Path to program.>")
 
     def repl(self):
-        self.src = "ReplContext"
+        self.src.append("Repl")
         while True:
-            match input("mini-list-processor :: "):
+            match input("mlp :: "):
                 case "exit": return
-                case expr: self.execute(expr)
+                case expr:
+                    result = self.execute(expr)
+                    if result:
+                        print(result[0] if result[0] != None else "")
+        self.src.pop()
 
     def run(self, src):
-        self.src = src
+        self.src.append(src)
         with open(src) as file:
             program = file.read()
         self.execute(program)
+        self.src.pop()
 
-    def execute(src, program, env):
-        interpret(parse(lex(scan(program))))
+    def execute(self, program):
+        return [self.evaluate(expression) for expression in self.parse(self.lex(self.scan(program)))]
 
-    def scan(src, program):
-        return src, (enumerate(program
+    def scan(self, program):
+        return (enumerate(program
             .replace("(", " ( ")
             .replace(")", " ) ")
             .split("\n")))
 
-def lex(data):
-    src, lines = data
-    return [Token(src, line + 1, position + 1, value)
-        for line, content in lines
-        for position, value in enumerate(content.split())]
+    def lex(self, lines):
+        return [Token(line + 1, position + 1, value)
+            for line, content in lines
+            for position, value in enumerate(content.split())]
 
-def panic(src, line, position, value, type, message):
-    with open(src, "r") as file:
-        context = file.read()[line]
-    print(f"""Error in {src} (ln {line}, pos {position})
+    def parse(self, tokens):
+        ast = list()
+        while tokens:
+            token = tokens[0]
+            match token.value:
+                case "(":
+                    ast.append(self.extract_expr_from(tokens))
+                case ")":
+                    self.panic(token, "Syntactic Error", "Unexpected \")\". Possibly caused by an extra parentheses")
+                case other:
+                    self.panic(token, "Syntactic Error", f"The expression \"{other}\" must be enclosed in paretheses")
+        return ast
 
-    {context}
-    {" " * position}^ here
+    def extract_expr_from(self, tokens):
+        expr = list()
+        tokens.pop(0)
+        while tokens[0].value != ")":
+            match tokens[0].value:
+                case "(":
+                    expr.append(self.extract_expr_from(tokens))
+                case _:
+                    expr.append(self.extract_atom_from(tokens.pop(0)))
+        tokens.pop(0)
+        return expr
 
-{type}: {message}.
-    """)
-    exit()
+    def extract_atom_from(self, token):
+        try:
+            return Atom("number", float(token.value), token.line, token.position)
+        except ValueError:
+            return Atom("symbol", token.value, token.line, token.position)
 
-def parse(tokens):
-    ast = list()
-    while tokens:
-        token = tokens[0]
-        match token.value:
-            case "(":
-                ast.append(extract_expr_from(line))
-            case ")":
-                panic(token.line, token.position, token.value, "Syntactic Error", "Ended expression when none was open", tokens)
-            case other:
-                ast.append(extract_atom_from(line))
-    return ast
-    
-def extract_expr_from(line):
-    expr = list()
-    line.content.pop(0)
-    while line.content[0].value != ")":
-        match line.content[0].value:
-            case "(":
-                expr.append(extract_expr_from(line))
-            case _:
-                expr.append(extract_atom_from(line))
-    line.content.pop(0)
-    return expr
+    def evaluate(self, expression):
+        match expression:
+            case [Atom(value="if"), test, conseq, alt]:
+                return self.evaluate((conseq if self.evaluate(test) else alt))
+            case [Atom(value="define"), symbol, expr]:
+                self.environment[symbol.value] = self.evaluate(expr)
+            case [Atom(value="import"), path]:
+                self.run(f"{path.value}.lisp")
+                return list()
+            case [name, *exprs]:
+                if not isinstance(name, list) and not name.type == "symbol":
+                    return self.panic(name, "Invalid Procedure", f"The expression \"{name.value}\" is not a valid procedure")
+                function = self.evaluate(name)
+                arguments = [self.evaluate(expr).value if isinstance(expr, Atom) else self.evaluate(expr) for expr in exprs]
+                return function.value(*arguments)
+            case Atom() as atom:
+                match atom.type:
+                    case "symbol":
+                        if atom.value.startswith("'"):
+                            return atom
+                        return self.environment[expression.value]
+                    case _: return expression
 
-def extract_atom_from(line):
-    token = line.content.pop(0)
-    try:
-        return Atom("number", float(token.value))
-    except ValueError:
-        return Atom("symbol", token.value)
+    def panic(self, token, type, message):
+        print(f"---\n{type}: {message}.\n---\nSrc: {self.src[-1]}\tLn: {token.line} Pos: {token.position}\n")
+        exit()
 
-def evaluate(expression: Atom | list[Atom, ...], environment: dict):
-    match expression:
-        case [Atom(value="if"), test, conseq, alt]:
-            return evaluate((conseq if evaluate(test, environment) else alt), environment)
-        case [Atom(value="define"), symbol, expr]:
-            environment[symbol.value] = evaluate(expr, environment)
-        case [name, *exprs]:
-            function = evaluate(name, environment)
-            arguments = [evaluate(expr, environment).value if isinstance(expr, Atom) else evaluate(expr, environment) for expr in exprs]
-            return function(*arguments)
-        case Atom() as atom:
-            match atom.type:
-                case "symbol":
-                    if atom.value.startswith("'"):
-                        return atom
-                    return environment[expression.value]
-                case _: return expression
 
-def interpret(ast, env):
-    for expr in ast:
-        evaluate(expr, env)
+@datacls
+class Token:
+    line: int
+    position: int
+    value: str
+
+
+@datacls
+class Atom:
+    type: str
+    value: str | float
+    line: int
+    position: int
+
 
 def standard_environment():
-    return {
+    environment = {
         # Execution
         "apply": lambda f, *x: f(*x),
         "begin": lambda *x: x[-1],
@@ -160,7 +164,10 @@ def standard_environment():
         "not": operator.not_,
         "abs": abs,
     }
-    
+    for key in environment:
+        environment[key] = Atom("procedure", environment[key], -1, -1)
+    return environment
+
 
 if __name__ == "__main__":
     mlp = Mlp()
