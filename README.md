@@ -1,18 +1,22 @@
 # Hirad
-*
+*An object/array oriented programming language for scientific computing and systems programming, in the tradition of Smalltalk and APL.* 
 
-- Everything in the syntax of Hirad is an expression.
-- Each expression is made of a actor, scalar, vector, or matrix.
-- Actors are atom objects with a record, a type and a protocol
-- Expressions represent a list of signal arguments sent to an object.
-- There are two forms to expressions:
-    - parameter expressions have a target and parameter signature, ie `(<object> <operator> <Optional: Operand>)`.
-    - keyword expressions have a target and a keyword signature, ie `(<object> <keyword>: <value>)`.
-- Each object has a protocol that describes what messages it understands.
-- Accessors are unary messages.
+## Why Hirad?
+TODO...
+
+## Installation
+TODO...
+
+## Usage
+TODO...
+
+## License
+This project is licensed under the [MIT License](LICENSE).
+
+## Contributing
+TODO...
 
 ## Principles
-
 - "make the simple things very simple, and the complex things very possible" -- Alan Kay
 - automation over specification. The implementation should deal with all it can so you dont have too, including formatting, documentation, tests, imports, types/inference, ownership/memory, etc
 - zero cost abstraction. there should be very little between you and the computer if possible, and the syntax of the language should map to the underlying hardware or at least to lower level concepts in an intuitive way
@@ -22,7 +26,6 @@
 - fully featured. a batteries includes approach will stop people from having to reimplement the basic tooling found in other languages, and keeps softwares focus on the business needs and behavior instead of writing a set implementation
 
 ## Features
-
 - build system, repl, package manager
 - literate tests, documentation, and programming with support for md and asciidoc
 - web, cli, tui, and gui tooling
@@ -34,22 +37,37 @@
 - fused multiply add
 
 ## Syntax
+*Subject to change*
 
-```st
-{ ... } block of statements
-[ ... ] list of type parameters
-( ... ) sequence of expressions
-| ... | temporary variables inside a block
-^... return statement)
+```ocaml
+Example: class
+ex := Example obj
+
+Example print := [|
+    IO ~write self
+]
+ex display
+
+Example incr := [ x: Int |
+    IO ~write x + 1
+]
+ex incr 10
+
+Example ~from ~to := [ x: Int y: Int |
+    ^from + to
+]
+ex ~from 10 ~to 20
+
 ```
 
 ## Inspirations
 
+- Smalltalk
+- Apl
 - Oberon2
 - Modula
 - Algo68
 - Pascal
-- Smalltalk
 - Ml/ocaml
 - Nim
 - Haskell
